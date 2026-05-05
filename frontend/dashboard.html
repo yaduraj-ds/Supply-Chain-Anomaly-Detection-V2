@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Supply Chain Intelligence</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body class="dashboard-body">
+
+    <!-- TOP NAVIGATION -->
+    <nav class="navbar dashboard-nav">
+        <div class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-cube" style="color: #3B82F6;"></i></div>
+            Supply Chain Intelligence
+        </div>
+        <a href="index.html" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Logout</a>
+    </nav>
+
+    <div class="main-container">
+        
+        <!-- COMPRESSED UPLOAD SECTION (3 Columns) -->
+        <div class="upload-section-dense">
+            <div class="upload-box-dense" id="uploadBox">
+                <i class="fa-solid fa-cloud-arrow-up text-blue" style="font-size: 24px; margin-bottom: 8px;"></i>
+                <p style="margin: 0; font-size: 12px; color: var(--text-muted);">Drag & drop CSV or click to browse</p>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                <button class="btn-primary btn-sm" onclick="document.getElementById('csvFileInput').click()">Choose File</button>
+                <p id="fileNameDisplay" style="color: #10B981; margin-top: 5px; font-size: 11px; display: none;"></p>
+            </div>
+
+            <div class="control-box-dense">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Analysis Settings</h3>
+                <select id="modelSelect" class="dense-select">
+                    <option value="isolation_forest">Isolation Forest (Global)</option>
+                    <option value="lof">Local Outlier Factor (Density)</option>
+                </select>
+                <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 10px;"><i class="fa-solid fa-microchip"></i> Run Analysis</button>
+            </div>
+
+            <div class="status-box-dense">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">System Status</h3>
+                <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 10px;">
+                    <i class="fa-solid fa-circle-notch fa-spin text-blue"></i> <span style="font-size: 12px; color: var(--text-muted);">Processing 100,000+ rows...</span>
+                </div>
+                <div id="successIndicator" style="display: none;">
+                    <p style="margin:0; font-size: 12px; color: #34D399;"><i class="fa-solid fa-check-circle"></i> Analysis Complete</p>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIGHT KPI GRID -->
+        <div class="kpi-grid-dense">
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense"><div class="kpi-icon-dense blue"><i class="fa-solid fa-database"></i></div><span>Rows Scanned</span></div>
+                <div class="kpi-value-dense" id="kpi-total">0</div>
+            </div>
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense"><div class="kpi-icon-dense red"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Anomalies</span></div>
+                <div class="kpi-value-dense" id="kpi-anomalies">0</div>
+            </div>
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense"><div class="kpi-icon-dense yellow"><i class="fa-solid fa-shield-virus"></i></div><span>High Severity</span></div>
+                <div class="kpi-value-dense red-text" id="kpi-severity">0</div>
+            </div>
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense"><div class="kpi-icon-dense green"><i class="fa-regular fa-clock"></i></div><span>Late (At Risk)</span></div>
+                <div class="kpi-value-dense" id="kpi-late">0</div>
+            </div>
+        </div>
+
+        <!-- DENSE 8-CHART GRID -->
+        <div class="charts-grid-dense">
+            <!-- Row 1: Wide Charts -->
+            <div class="chart-box-dense col-span-2">
+                <h3 class="chart-title-dense">Anomalies Over Time</h3>
+                <div id="timeChart" style="height: 200px;"></div>
+            </div>
+            <div class="chart-box-dense col-span-2">
+                <h3 class="chart-title-dense">Global Anomaly Heatmap</h3>
+                <div id="mapChart" style="height: 200px;"></div>
+            </div>
+
+            <!-- Row 2: Square Charts -->
+            <div class="chart-box-dense">
+                <h3 class="chart-title-dense">By Delivery Status</h3>
+                <div id="donutChart" style="height: 180px;"></div>
+            </div>
+            <div class="chart-box-dense">
+                <h3 class="chart-title-dense">Top Problematic Cities</h3>
+                <div id="barChart" style="height: 180px;"></div>
+            </div>
+            <!-- REPLACED COUNTRY CHART WITH QUANTITY CHART -->
+            <div class="chart-box-dense">
+                <h3 class="chart-title-dense">Anomalies by Order Qty</h3>
+                <div id="quantityChart" style="height: 180px;"></div>
+            </div>
+            <div class="chart-box-dense">
+                <h3 class="chart-title-dense">Financial Impact</h3>
+                <div id="scatterChart" style="height: 180px;"></div>
+            </div>
+        </div>
+
+        <!-- COMPRESSED DATA TABLE -->
+        <div class="table-box-dense">
+            <h3 class="chart-title-dense">Recent High-Severity Log</h3>
+            <table class="data-table-dense">
+                <thead>
+                    <tr><th>City</th><th>Country</th><th>Status</th><th>Discount</th><th>Profit</th><th>Severity</th></tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Upload data to view logs</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- ANALYTICAL REPORT SUMMARY -->
+        <div class="report-summary-box">
+            
+            <!-- Column 1: Title -->
+            <div class="report-col info-col">
+                <div class="report-header">
+                    <div class="report-icon"><i class="fa-solid fa-file-contract"></i></div>
+                    <h3>Analytical Report</h3>
+                </div>
+                <p>Our AI analysis has processed your data and identified key patterns and anomalies in your supply chain.</p>
+            </div>
+
+            <!-- Column 2: Insights -->
+            <div class="report-col">
+                <h4>Key Insights</h4>
+                <ul class="report-list">
+                    <li><i class="fa-regular fa-circle-check text-blue"></i> Anomalous discount rates correlate with negative profits.</li>
+                    <li><i class="fa-regular fa-circle-check text-blue"></i> High concentration of late deliveries in specific cities.</li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Recommendations -->
+            <div class="report-col">
+                <h4>Recommendations</h4>
+                <ul class="report-list">
+                    <li><i class="fa-regular fa-circle-check text-blue"></i> Audit discount approval workflows for flagged orders.</li>
+                    <li><i class="fa-regular fa-circle-check text-blue"></i> Investigate carrier performance in top problematic regions.</li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Impact -->
+            <div class="report-col">
+                <h4>Impact</h4>
+                <ul class="report-list">
+                    <li><i class="fa-regular fa-circle-check text-blue"></i> Identify and recover hidden profit leakages.</li>
+                    <li><i class="fa-regular fa-circle-check text-blue"></i> Proactively improve overall on-time delivery metrics.</li>
+                </ul>
+            </div>
+
+            <!-- Column 5: Decorative Icon -->
+            <div class="report-col decoration-col">
+                <i class="fa-solid fa-chart-line text-blue" style="font-size: 50px; opacity: 0.5;"></i>
+            </div>
+
+        </div>
+
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
