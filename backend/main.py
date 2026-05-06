@@ -29,6 +29,10 @@ try:
 except FileNotFoundError:
     print("⚠️ WARNING: .pkl files not found.")
 
+@app.get("/")
+async def root():
+    return {"status": "Supply Chain AI Backend is Running"}
+
 @app.post("/analyze")
 async def analyze_data(
     file: UploadFile = File(...),
