@@ -4,10 +4,11 @@ import pandas as pd
 import joblib
 import io
 import os
-from database import init_db, log_analysis # <-- Look how clean this import is!
+from database import init_db, log_analysis 
 
 app = FastAPI(title="Supply Chain AI API - Inference Server")
 
+# Keep this! It's what allows Vercel to talk to Render
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,10 +17,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the database on startup
 init_db()
 
-# Load Models
 MODEL_DIR = "models/"
 try:
     print("Loading models into memory...")
@@ -28,7 +27,7 @@ try:
     lof = joblib.load(os.path.join(MODEL_DIR, "lof.pkl"))
     print("✅ Models loaded successfully!")
 except FileNotFoundError:
-    print("⚠️ WARNING: .pkl files not found. Please run ml_pipeline/train_models.py first.")
+    print("⚠️ WARNING: .pkl files not found.")
 
 @app.post("/analyze")
 async def analyze_data(
@@ -40,7 +39,11 @@ async def analyze_data(
     
     contents = await file.read()
     try:
+        # We use latin1 encoding as it's common for this specific dataset
         df = pd.read_csv(io.BytesIO(contents), encoding='latin1')
+        
+        # CLEANUP: Remove any hidden spaces from column names
+        df.columns = df.columns.str.strip()
     except Exception:
         raise HTTPException(status_code=400, detail="Error reading CSV file.")
 
@@ -56,8 +59,10 @@ async def analyze_data(
 
     all_required = features + visual_cols
     missing_cols = [col for col in all_required if col not in df.columns]
+    
     if missing_cols:
-        raise HTTPException(status_code=400, detail=f"Missing columns: {missing_cols}")
+        # If missing, it's likely a naming mismatch. We show exactly what's missing.
+        raise HTTPException(status_code=400, detail=f"Dataset error. Missing: {missing_cols}")
 
     df_clean = df.dropna(subset=features).copy()
     X_new = df_clean[features]
@@ -70,7 +75,7 @@ async def analyze_data(
     else:
         raise HTTPException(status_code=400, detail="Invalid model type.")
 
-    anomalies = df_clean[df_clean['Anomaly'] == -1]
+    anomalies = df_clean[df_clean['Anomaly'] == -1].copy()
 
     def assign_severity(profit):
         if profit < -0.5: return "High"
@@ -83,10 +88,7 @@ async def analyze_data(
     total_anomalies_count = len(anomalies)
     total_rows = len(df_clean)
 
-    # --- THE MAGIC OF REFACTORING ---
-    # We now just call this one clean function instead of writing raw SQL
     log_analysis(model_type, total_rows, total_anomalies_count, high_sev_count)
-    # --------------------------------
 
     results = anomalies.fillna("").head(150).to_dict(orient="records")
     
