@@ -19,15 +19,15 @@ app.add_middleware(
 
 init_db()
 
+# --- MEMORY OPTIMIZATION ---
+# Only load the scaler globally to save RAM.
 MODEL_DIR = "models/"
 try:
-    print("Loading models into memory...")
+    print("Loading scaler into memory...")
     scaler = joblib.load(os.path.join(MODEL_DIR, "scaler.pkl"))
-    iso_forest = joblib.load(os.path.join(MODEL_DIR, "isolation_forest.pkl"))
-    lof = joblib.load(os.path.join(MODEL_DIR, "lof.pkl"))
-    print("✅ Models loaded successfully!")
+    print("✅ Scaler loaded successfully!")
 except FileNotFoundError:
-    print("⚠️ WARNING: .pkl files not found.")
+    print("⚠️ WARNING: scaler.pkl not found.")
 
 @app.get("/")
 async def root():
@@ -72,9 +72,13 @@ async def analyze_data(
     X_new = df_clean[features]
     X_scaled = scaler.transform(X_new)
 
+    # --- MEMORY OPTIMIZATION ---
+    # Load the heavy ML models ONLY when requested, then let memory clear
     if model_type == "isolation_forest":
+        iso_forest = joblib.load(os.path.join(MODEL_DIR, "isolation_forest.pkl"))
         df_clean['Anomaly'] = iso_forest.predict(X_scaled)
     elif model_type == "lof":
+        lof = joblib.load(os.path.join(MODEL_DIR, "lof.pkl"))
         df_clean['Anomaly'] = lof.predict(X_scaled)
     else:
         raise HTTPException(status_code=400, detail="Invalid model type.")
