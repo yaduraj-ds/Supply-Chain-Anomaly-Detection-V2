@@ -10,7 +10,6 @@
 </head>
 <body class="dashboard-body">
 
-    <!-- TOP NAVIGATION -->
     <nav class="navbar dashboard-nav">
         <div class="logo">
             <div class="logo-icon"><i class="fa-solid fa-cube" style="color: #3B82F6;"></i></div>
@@ -21,7 +20,6 @@
 
     <div class="main-container">
         
-        <!-- COMPRESSED UPLOAD SECTION (3 Columns) -->
         <div class="upload-section-dense">
             <div class="upload-box-dense" id="uploadBox">
                 <i class="fa-solid fa-cloud-arrow-up text-blue" style="font-size: 24px; margin-bottom: 8px;"></i>
@@ -32,12 +30,15 @@
             </div>
 
             <div class="control-box-dense">
-                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Analysis Settings</h3>
-                <select id="modelSelect" class="dense-select">
-                    <option value="isolation_forest">Isolation Forest (Global)</option>
-                    <option value="lof">Local Outlier Factor (Density)</option>
-                </select>
-                <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 10px;"><i class="fa-solid fa-microchip"></i> Run Analysis</button>
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Analysis Engine</h3>
+                
+                <input type="hidden" id="modelSelect" value="isolation_forest">
+                
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                    <i class="fa-solid fa-check-circle" style="color: #10B981;"></i> Isolation Forest Active
+                </p>
+                
+                <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 2px;"><i class="fa-solid fa-microchip"></i> Run Analysis</button>
             </div>
 
             <div class="status-box-dense">
@@ -52,7 +53,6 @@
             </div>
         </div>
 
-        <!-- TIGHT KPI GRID -->
         <div class="kpi-grid-dense">
             <div class="kpi-card-dense">
                 <div class="kpi-header-dense"><div class="kpi-icon-dense blue"><i class="fa-solid fa-database"></i></div><span>Rows Scanned</span></div>
@@ -72,9 +72,7 @@
             </div>
         </div>
 
-        <!-- DENSE 8-CHART GRID -->
         <div class="charts-grid-dense">
-            <!-- Row 1: Wide Charts -->
             <div class="chart-box-dense col-span-2">
                 <h3 class="chart-title-dense">Anomalies Over Time</h3>
                 <div id="timeChart" style="height: 200px;"></div>
@@ -84,7 +82,6 @@
                 <div id="mapChart" style="height: 200px;"></div>
             </div>
 
-            <!-- Row 2: Square Charts -->
             <div class="chart-box-dense">
                 <h3 class="chart-title-dense">By Delivery Status</h3>
                 <div id="donutChart" style="height: 180px;"></div>
@@ -93,7 +90,6 @@
                 <h3 class="chart-title-dense">Top Problematic Cities</h3>
                 <div id="barChart" style="height: 180px;"></div>
             </div>
-            <!-- REPLACED COUNTRY CHART WITH QUANTITY CHART -->
             <div class="chart-box-dense">
                 <h3 class="chart-title-dense">Anomalies by Order Qty</h3>
                 <div id="quantityChart" style="height: 180px;"></div>
@@ -104,7 +100,6 @@
             </div>
         </div>
 
-        <!-- COMPRESSED DATA TABLE -->
         <div class="table-box-dense">
             <h3 class="chart-title-dense">Recent High-Severity Log</h3>
             <table class="data-table-dense">
@@ -117,10 +112,8 @@
             </table>
         </div>
         
-        <!-- ANALYTICAL REPORT SUMMARY -->
         <div class="report-summary-box">
             
-            <!-- Column 1: Title -->
             <div class="report-col info-col">
                 <div class="report-header">
                     <div class="report-icon"><i class="fa-solid fa-file-contract"></i></div>
@@ -129,7 +122,6 @@
                 <p>Our AI analysis has processed your data and identified key patterns and anomalies in your supply chain.</p>
             </div>
 
-            <!-- Column 2: Insights -->
             <div class="report-col">
                 <h4>Key Insights</h4>
                 <ul class="report-list">
@@ -138,7 +130,6 @@
                 </ul>
             </div>
 
-            <!-- Column 3: Recommendations -->
             <div class="report-col">
                 <h4>Recommendations</h4>
                 <ul class="report-list">
@@ -147,7 +138,6 @@
                 </ul>
             </div>
 
-            <!-- Column 4: Impact -->
             <div class="report-col">
                 <h4>Impact</h4>
                 <ul class="report-list">
@@ -156,7 +146,6 @@
                 </ul>
             </div>
 
-            <!-- Column 5: Decorative Icon -->
             <div class="report-col decoration-col">
                 <i class="fa-solid fa-chart-line text-blue" style="font-size: 50px; opacity: 0.5;"></i>
             </div>

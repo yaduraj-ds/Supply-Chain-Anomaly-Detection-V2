@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import joblib
@@ -34,10 +34,9 @@ async def root():
     return {"status": "Supply Chain AI Backend is Running"}
 
 @app.post("/analyze")
-async def analyze_data(
-    file: UploadFile = File(...),
-    model_type: str = Form(...)
-):
+async def analyze_data(file: UploadFile = File(...)): 
+    # Notice we removed model_type from the parameters here!
+    
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files allowed.")
     
@@ -72,16 +71,10 @@ async def analyze_data(
     X_new = df_clean[features]
     X_scaled = scaler.transform(X_new)
 
-    # --- MEMORY OPTIMIZATION ---
-    # Load the heavy ML models ONLY when requested, then let memory clear
-    if model_type == "isolation_forest":
-        iso_forest = joblib.load(os.path.join(MODEL_DIR, "isolation_forest.pkl"))
-        df_clean['Anomaly'] = iso_forest.predict(X_scaled)
-    elif model_type == "lof":
-        lof = joblib.load(os.path.join(MODEL_DIR, "lof.pkl"))
-        df_clean['Anomaly'] = lof.predict(X_scaled)
-    else:
-        raise HTTPException(status_code=400, detail="Invalid model type.")
+    # --- MODEL INFERENCE ---
+    # We now exclusively load and use Isolation Forest for maximum stability
+    iso_forest = joblib.load(os.path.join(MODEL_DIR, "isolation_forest.pkl"))
+    df_clean['Anomaly'] = iso_forest.predict(X_scaled)
 
     anomalies = df_clean[df_clean['Anomaly'] == -1].copy()
 
@@ -96,12 +89,13 @@ async def analyze_data(
     total_anomalies_count = len(anomalies)
     total_rows = len(df_clean)
 
-    log_analysis(model_type, total_rows, total_anomalies_count, high_sev_count)
+    # Hardcoded "isolation_forest" since it's our sole model now
+    log_analysis("isolation_forest", total_rows, total_anomalies_count, high_sev_count)
 
     results = anomalies.fillna("").head(150).to_dict(orient="records")
     
     return {
-        "model_used": model_type,
+        "model_used": "isolation_forest",
         "total_rows_analyzed": total_rows,
         "total_anomalies_found": total_anomalies_count,
         "high_severity_count": high_sev_count,

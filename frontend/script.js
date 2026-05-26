@@ -9,7 +9,6 @@ document.getElementById('csvFileInput').addEventListener('change', function(e) {
 
 document.getElementById('analyzeBtn').addEventListener('click', async () => {
     const fileInput = document.getElementById('csvFileInput');
-    const modelType = document.getElementById('modelSelect').value;
 
     if (!fileInput.files.length) {
         alert("Please select a CSV file first!");
@@ -23,10 +22,9 @@ document.getElementById('analyzeBtn').addEventListener('click', async () => {
 
     const formData = new FormData();
     formData.append("file", fileInput.files[0]);
-    formData.append("model_type", modelType);
+    // Notice: We completely removed the model_type append here!
 
     try {
-        // Updated to your live Render Backend URL
         const response = await fetch("https://supply-chain-anomaly-detection-v2.onrender.com/analyze", {
             method: "POST",
             body: formData
