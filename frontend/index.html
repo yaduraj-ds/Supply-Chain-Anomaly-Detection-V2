@@ -7,14 +7,32 @@
     <link rel="stylesheet" href="style.css">
     <!-- FontAwesome for the UI icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Premium font pairing: Syne (display) + DM Sans (body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <!-- Animated grid/noise background canvas -->
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
 
     <!-- TOP NAVIGATION -->
     <nav class="navbar">
         <div class="logo">
             <div class="logo-icon">
-                <i class="fa-solid fa-cube" style="color: #3B82F6; margin: auto; display: block; text-align: center; line-height: 28px;"></i>
+                <!-- Animated hex ring -->
+                <svg class="logo-hex" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="14,2 25,8 25,20 14,26 3,20 3,8" stroke="url(#hexGrad)" stroke-width="1.5" fill="none"/>
+                    <defs>
+                        <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00D4FF"/>
+                            <stop offset="100%" stop-color="#7B61FF"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <i class="fa-solid fa-cube logo-cube"></i>
             </div>
             Supply Chain Intelligence
         </div>
@@ -24,7 +42,10 @@
     <!-- DARK HERO SECTION -->
     <header class="hero">
         <div class="hero-content">
-            <div class="badge">AI-POWERED SUPPLY CHAIN INTELLIGENCE</div>
+            <div class="badge">
+                <span class="badge-dot"></span>
+                AI-POWERED SUPPLY CHAIN INTELLIGENCE
+            </div>
             <h1>Detect anomalies.<br>Prevent disruptions.<br><span class="text-gradient">Optimize performance.</span></h1>
             <p>Our AI-driven platform continuously monitors your supply chain in real time, detects anomalies before they impact your business, and delivers actionable insights so you can stay ahead.</p>
             
@@ -54,36 +75,120 @@
         </div>
         
         <div class="hero-image">
-            <img src="assets/dog meme.png" alt="Dashboard Mockup" class="mockup">
+            <!-- Decorative data-viz frame replacing placeholder image -->
+            <div class="mockup-frame">
+                <div class="mockup-topbar">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                    <span class="mockup-url">supply-chain-ai.io/dashboard</span>
+                </div>
+                <div class="mockup-body">
+                    <!-- Fake KPI row -->
+                    <div class="mock-kpi-row">
+                        <div class="mock-kpi red-kpi">
+                            <span class="mock-label">Critical</span>
+                            <span class="mock-value">3</span>
+                            <span class="mock-sub">anomalies</span>
+                        </div>
+                        <div class="mock-kpi yellow-kpi">
+                            <span class="mock-label">Warning</span>
+                            <span class="mock-value">12</span>
+                            <span class="mock-sub">flagged</span>
+                        </div>
+                        <div class="mock-kpi green-kpi">
+                            <span class="mock-label">On Track</span>
+                            <span class="mock-value">94%</span>
+                            <span class="mock-sub">score</span>
+                        </div>
+                        <div class="mock-kpi blue-kpi">
+                            <span class="mock-label">Nodes</span>
+                            <span class="mock-value">248</span>
+                            <span class="mock-sub">active</span>
+                        </div>
+                    </div>
+                    <!-- Fake chart bars -->
+                    <div class="mock-chart-area">
+                        <div class="mock-chart-header">Anomaly Frequency — Last 30 Days</div>
+                        <div class="mock-bars">
+                            <div class="mock-bar" style="--h:30%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:55%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:40%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:70%;--c:#00D4FF"></div>
+                            <div class="mock-bar" style="--h:35%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:90%;--c:#F43F5E"></div>
+                            <div class="mock-bar" style="--h:60%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:45%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:75%;--c:#00D4FF"></div>
+                            <div class="mock-bar" style="--h:50%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:38%;--c:#7B61FF"></div>
+                            <div class="mock-bar" style="--h:62%;--c:#7B61FF"></div>
+                        </div>
+                    </div>
+                    <!-- Fake alert rows -->
+                    <div class="mock-alert-row">
+                        <span class="mock-badge red-badge">HIGH</span>
+                        <span class="mock-alert-text">Warehouse B — Inventory spike detected</span>
+                        <span class="mock-time">2m ago</span>
+                    </div>
+                    <div class="mock-alert-row">
+                        <span class="mock-badge yellow-badge">MED</span>
+                        <span class="mock-alert-text">Supplier 14 — Lead time deviation</span>
+                        <span class="mock-time">8m ago</span>
+                    </div>
+                    <div class="mock-alert-row">
+                        <span class="mock-badge green-badge">LOW</span>
+                        <span class="mock-alert-text">Route 7 — Minor delay, auto-resolved</span>
+                        <span class="mock-time">15m ago</span>
+                    </div>
+                </div>
+                <!-- Animated scan line -->
+                <div class="scan-line"></div>
+                <!-- Corner accents -->
+                <span class="corner tl"></span>
+                <span class="corner tr"></span>
+                <span class="corner bl"></span>
+                <span class="corner br"></span>
+            </div>
         </div>
     </header>
 
-    <!-- WHITE FEATURES SECTION (Now with exactly 4 cards) -->
+    <!-- WHITE FEATURES SECTION -->
     <section class="white-section">
+        <!-- Section label -->
+        <div class="section-label">CORE CAPABILITIES</div>
+        <h2 class="section-heading">Everything your supply chain needs to <em>never miss a beat.</em></h2>
+
         <div class="features-grid">
             
             <div class="feature-card">
+                <div class="feature-card-glow blue-glow"></div>
                 <div class="icon" style="color: #3B82F6;"><i class="fa-regular fa-eye"></i></div>
                 <h3>End-to-End Visibility</h3>
-                <p>Track every shipment, order, and event in real time across your entire network.</p>
+                <p>Track every shipment, order, and event in real time across your entire network — from supplier to customer doorstep.</p>
+                <div class="card-line blue-line"></div>
             </div>
 
             <div class="feature-card">
+                <div class="feature-card-glow purple-glow"></div>
                 <div class="icon" style="color: #8B5CF6;"><i class="fa-solid fa-brain"></i></div>
                 <h3>AI-Powered Detection</h3>
-                <p>Advanced machine learning models identify unusual patterns and potential disruptions.</p>
+                <p>Advanced machine learning models identify unusual patterns and potential disruptions before they cascade through your network.</p>
+                <div class="card-line purple-line"></div>
             </div>
 
             <div class="feature-card">
-                <div class="icon" style="color: #3B82F6;"><i class="fa-solid fa-crosshairs"></i></div>
+                <div class="feature-card-glow cyan-glow"></div>
+                <div class="icon" style="color: #06B6D4;"><i class="fa-solid fa-crosshairs"></i></div>
                 <h3>Root Cause Analysis</h3>
-                <p>Drill down into anomalies to understand the root cause and minimize future risks.</p>
+                <p>Drill down into anomalies to understand the root cause instantly — and build corrective playbooks that prevent recurrence.</p>
+                <div class="card-line cyan-line"></div>
             </div>
 
             <div class="feature-card">
+                <div class="feature-card-glow green-glow"></div>
                 <div class="icon" style="color: #10B981;"><i class="fa-solid fa-chart-simple"></i></div>
                 <h3>Performance Analytics</h3>
-                <p>Monitor KPIs and performance trends to optimize operations continuously.</p>
+                <p>Monitor KPIs and performance trends with living dashboards that evolve as your operations scale.</p>
+                <div class="card-line green-line"></div>
             </div>
 
         </div>

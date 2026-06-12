@@ -3,157 +3,850 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Supply Chain Intelligence</title>
+    <title>Dashboard — Supply Chain Intelligence</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+<style>
+/* ============================================================
+   DASHBOARD-SPECIFIC STYLES — Obsidian Ops Theme
+   ============================================================ */
+
+/* Body override for dashboard */
+.dashboard-body {
+    background: var(--bg-void);
+    min-height: 100vh;
+}
+
+/* ---- DASHBOARD NAV ---- */
+.dashboard-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,7,9,0.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 18px 3%;
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 100%;
+    animation: navFadeIn 0.6s var(--ease) both;
+}
+.dashboard-nav .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; gap: 12px;
+    color: var(--text-primary);
+}
+.dashboard-nav .logo-icon {
+    width: 30px; height: 30px;
+    display: flex; justify-content: center; align-items: center;
+    position: relative;
+}
+.dashboard-nav .logo-hex {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    animation: hexSpin 12s linear infinite;
+}
+.dashboard-nav .logo-cube {
+    font-size: 12px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    position: relative; z-index: 1;
+}
+.logout-btn {
+    background: transparent;
+    color: var(--text-mid);
+    padding: 8px 18px; border-radius: 6px;
+    font-weight: 500; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    border: 1px solid var(--border-subtle);
+    transition: border-color 0.3s, color 0.3s;
+    display: flex; align-items: center; gap: 7px;
+    cursor: pointer;
+}
+.logout-btn:hover { border-color: rgba(244,63,94,0.4); color: var(--crimson); }
+
+/* ---- MAIN CONTAINER ---- */
+.main-container {
+    padding: 20px 2.5%;
+    max-width: 1900px;
+    margin: 0 auto;
+}
+
+/* ---- UPLOAD ROW ---- */
+.upload-section-dense {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr 1.2fr;
+    gap: 14px; margin-bottom: 16px;
+}
+
+/* Shared panel base */
+.panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 16px 18px;
+    transition: border-color 0.3s;
+}
+.panel:hover { border-color: rgba(0,212,255,0.15); }
+.panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 12px 0; letter-spacing: 0.3px;
+}
+
+/* Upload box */
+.upload-box-dense {
+    background: var(--bg-surface);
+    border: 1px dashed rgba(0,212,255,0.2);
+    border-radius: 12px; padding: 16px 18px;
+    text-align: center;
+    transition: border-color 0.3s, background 0.3s;
+    position: relative;
+}
+.upload-box-dense:hover {
+    border-color: rgba(0,212,255,0.5);
+    background: rgba(0,212,255,0.03);
+}
+.upload-box-dense i { font-size: 22px; color: var(--cyan); margin-bottom: 8px; display: block; }
+.upload-box-dense p { margin: 0; font-size: 11.5px; color: var(--text-muted); }
+
+/* Control box */
+.control-box-dense {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 16px 18px;
+}
+
+/* Status box */
+.status-box-dense {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 16px 18px;
+}
+
+/* Buttons (inline overrides) */
+.btn-sm {
+    padding: 9px 18px; font-size: 12.5px;
+    margin-top: 10px;
+    border-radius: 7px;
+}
+
+/* Select */
+.dense-select {
+    width: 100%; padding: 9px 12px;
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px; font-size: 12.5px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.3s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235A6380' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+}
+.dense-select:focus { outline: none; border-color: rgba(0,212,255,0.4); }
+
+/* Progress bar */
+.progress-bar-bg { width: 100%; height: 4px; background: var(--bg-raised); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.progress-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--violet)); border-radius: 2px; animation: progressPulse 1.5s ease-in-out infinite; }
+@keyframes progressPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* ---- KPI GRID ---- */
+.kpi-grid-dense {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 16px;
+}
+
+.kpi-card-dense {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 16px 18px; border-radius: 12px;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s var(--ease), border-color 0.3s;
+    animation: kpiReveal 0.6s var(--ease) both;
+}
+.kpi-card-dense::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--card-accent, var(--cyan)), transparent);
+    opacity: 0.7;
+}
+.kpi-card-dense:hover { transform: translateY(-3px); border-color: rgba(0,212,255,0.15); }
+
+.kpi-card-dense:nth-child(1) { --card-accent: var(--cyan); animation-delay: 0.05s; }
+.kpi-card-dense:nth-child(2) { --card-accent: var(--crimson); animation-delay: 0.10s; }
+.kpi-card-dense:nth-child(3) { --card-accent: var(--amber); animation-delay: 0.15s; }
+.kpi-card-dense:nth-child(4) { --card-accent: var(--emerald); animation-delay: 0.20s; }
+
+@keyframes kpiReveal {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-header-dense {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+    color: var(--text-muted); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+}
+
+.kpi-icon-dense {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 13px; color: white; flex-shrink: 0;
+}
+.kpi-icon-dense.blue   { background: var(--cyan);    box-shadow: 0 0 12px rgba(0,212,255,0.45); }
+.kpi-icon-dense.red    { background: var(--crimson);  box-shadow: 0 0 12px rgba(244,63,94,0.45); }
+.kpi-icon-dense.yellow { background: var(--amber);    box-shadow: 0 0 12px rgba(255,181,71,0.45); }
+.kpi-icon-dense.green  { background: var(--emerald);  box-shadow: 0 0 12px rgba(0,229,160,0.45); }
+
+.kpi-value-dense {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    transition: color 0.4s;
+}
+.red-text { color: var(--crimson) !important; }
+
+/* ---- CHARTS GRID ---- */
+.charts-grid-dense {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 16px;
+}
+.col-span-2 { grid-column: span 2; }
+
+.chart-box-dense {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 14px 16px;
+    transition: border-color 0.3s;
+}
+.chart-box-dense:hover { border-color: rgba(0,212,255,0.15); }
+
+.chart-title-dense {
+    font-family: 'Syne', sans-serif;
+    font-size: 12.5px; font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 6px 0; letter-spacing: 0.3px;
+}
+
+/* ---- DATA TABLE ---- */
+.table-box-dense {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 14px 16px;
+    overflow-x: auto; margin-bottom: 16px;
+}
+
+.data-table-dense {
+    width: 100%; border-collapse: collapse;
+    text-align: left; font-size: 12px;
+}
+.data-table-dense th {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; font-size: 10.5px;
+}
+.data-table-dense td {
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: var(--text-mid);
+    transition: background 0.2s;
+}
+.data-table-dense tbody tr:hover td { background: rgba(0,212,255,0.03); }
+
+/* Severity badges */
+.badge-severity-high { background: rgba(244,63,94,0.15);  color: var(--crimson); border: 1px solid rgba(244,63,94,0.3);  padding: 3px 10px; border-radius: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; }
+.badge-severity-med  { background: rgba(255,181,71,0.15); color: var(--amber);   border: 1px solid rgba(255,181,71,0.3); padding: 3px 10px; border-radius: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; }
+.badge-severity-low  { background: rgba(0,229,160,0.12);  color: var(--emerald); border: 1px solid rgba(0,229,160,0.3);  padding: 3px 10px; border-radius: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; }
+
+/* ---- REPORT SUMMARY BOX ---- */
+.report-summary-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 24px 28px;
+    display: flex; align-items: flex-start; gap: 24px;
+    margin-bottom: 30px;
+    position: relative; overflow: hidden;
+}
+.report-summary-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent);
+    opacity: 0.5;
+}
+
+.report-col {
+    flex: 1; border-right: 1px solid var(--border-subtle); padding-right: 22px;
+}
+.report-col:last-child, .decoration-col { border-right: none; padding-right: 0; }
+.info-col { flex: 1.4; }
+.decoration-col { flex: 0.4; text-align: center; display: flex; align-items: center; justify-content: center; }
+
+.report-header { display: flex; align-items: center; gap: 13px; margin-bottom: 10px; }
+.report-icon {
+    background: rgba(0,212,255,0.1); color: var(--cyan);
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 17px;
+    border: 1px solid rgba(0,212,255,0.2);
+}
+.report-col h3 { margin: 0; font-size: 16px; font-family: 'Syne', sans-serif; color: var(--text-primary); }
+.report-col h4 { margin: 0 0 12px 0; font-size: 12.5px; color: var(--text-primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+.report-col p  { margin: 0; color: var(--text-muted); font-size: 12.5px; line-height: 1.6; }
+
+.report-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.report-list li { color: var(--text-muted); font-size: 12px; display: flex; align-items: flex-start; gap: 9px; line-height: 1.5; }
+.report-list li i { margin-top: 2px; font-size: 13px; }
+
+.text-blue { color: var(--cyan) !important; }
+
+/* Decoration icon glow */
+.deco-icon-wrap {
+    width: 70px; height: 70px;
+    background: rgba(0,212,255,0.07);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--cyan); opacity: 0.7;
+    animation: decorPulse 3s ease-in-out infinite;
+}
+@keyframes decorPulse {
+    0%,100% { box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+    50%      { box-shadow: 0 0 35px rgba(0,212,255,0.35); }
+}
+
+/* ---- STATUS INDICATORS ---- */
+#loadingIndicator { text-align: center; margin-top: 8px; }
+#loadingIndicator i { color: var(--cyan); }
+#loadingIndicator span { font-size: 11.5px; color: var(--text-muted); }
+
+#successIndicator p { margin: 0; font-size: 12px; color: var(--emerald); }
+
+#fileNameDisplay { color: var(--emerald); margin-top: 7px; font-size: 11px; display: none; }
+
+/* Drag-over highlight */
+.drag-over {
+    border-color: var(--cyan) !important;
+    background: rgba(0,212,255,0.06) !important;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 1200px) {
+    .upload-section-dense { grid-template-columns: 1fr 1fr; }
+    .status-box-dense { grid-column: span 2; }
+    .kpi-grid-dense { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid-dense { grid-template-columns: repeat(2, 1fr); }
+    .col-span-2 { grid-column: span 2; }
+}
+
+@media (max-width: 768px) {
+    .upload-section-dense { grid-template-columns: 1fr; }
+    .status-box-dense { grid-column: span 1; }
+    .kpi-grid-dense { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid-dense { grid-template-columns: 1fr; }
+    .col-span-2 { grid-column: span 1; }
+    .report-summary-box { flex-direction: column; }
+    .report-col { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-right: 0; padding-bottom: 16px; }
+    .report-col:last-child { border-bottom: none; }
+    .main-container { padding: 14px 3%; }
+}
+</style>
 </head>
 <body class="dashboard-body">
 
-    <nav class="navbar dashboard-nav">
-        <div class="logo">
-            <div class="logo-icon"><i class="fa-solid fa-cube" style="color: #3B82F6;"></i></div>
-            Supply Chain Intelligence
+<!-- Ambient bg layers (shared with landing) -->
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+
+<!-- TOP NAVIGATION -->
+<nav class="navbar dashboard-nav">
+    <div class="logo">
+        <div class="logo-icon">
+            <svg class="logo-hex" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="14,2 25,8 25,20 14,26 3,20 3,8" stroke="url(#hexGradD)" stroke-width="1.5" fill="none"/>
+                <defs>
+                    <linearGradient id="hexGradD" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#00D4FF"/>
+                        <stop offset="100%" stop-color="#7B61FF"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <i class="fa-solid fa-cube logo-cube"></i>
         </div>
-        <a href="index.html" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Logout</a>
-    </nav>
+        Supply Chain Intelligence
+    </div>
+    <a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+</nav>
 
-    <div class="main-container">
-        
-        <div class="upload-section-dense">
-            <div class="upload-box-dense" id="uploadBox">
-                <i class="fa-solid fa-cloud-arrow-up text-blue" style="font-size: 24px; margin-bottom: 8px;"></i>
-                <p style="margin: 0; font-size: 12px; color: var(--text-muted);">Drag & drop CSV or click to browse</p>
-                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
-                <button class="btn-primary btn-sm" onclick="document.getElementById('csvFileInput').click()">Choose File</button>
-                <p id="fileNameDisplay" style="color: #10B981; margin-top: 5px; font-size: 11px; display: none;"></p>
-            </div>
+<div class="main-container">
 
-            <div class="control-box-dense">
-                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Analysis Engine</h3>
-                
-                <input type="hidden" id="modelSelect" value="isolation_forest">
-                
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-                    <i class="fa-solid fa-check-circle" style="color: #10B981;"></i> Isolation Forest Active
-                </p>
-                
-                <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 2px;"><i class="fa-solid fa-microchip"></i> Run Analysis</button>
-            </div>
+    <!-- UPLOAD SECTION -->
+    <div class="upload-section-dense">
 
-            <div class="status-box-dense">
-                <h3 style="margin: 0 0 10px 0; font-size: 14px;">System Status</h3>
-                <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-notch fa-spin text-blue"></i> <span style="font-size: 12px; color: var(--text-muted);">Processing 100,000+ rows...</span>
-                </div>
-                <div id="successIndicator" style="display: none;">
-                    <p style="margin:0; font-size: 12px; color: #34D399;"><i class="fa-solid fa-check-circle"></i> Analysis Complete</p>
-                    <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
-                </div>
-            </div>
+        <div class="upload-box-dense" id="uploadBox">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Drag & drop a CSV file or click to browse</p>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+            <button class="btn-primary btn-sm" onclick="document.getElementById('csvFileInput').click()">
+                <i class="fa-solid fa-folder-open" style="margin-right:6px;"></i>Choose File
+            </button>
+            <p id="fileNameDisplay"></p>
         </div>
 
-        <div class="kpi-grid-dense">
-            <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense blue"><i class="fa-solid fa-database"></i></div><span>Rows Scanned</span></div>
-                <div class="kpi-value-dense" id="kpi-total">0</div>
-            </div>
-            <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense red"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Anomalies</span></div>
-                <div class="kpi-value-dense" id="kpi-anomalies">0</div>
-            </div>
-            <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense yellow"><i class="fa-solid fa-shield-virus"></i></div><span>High Severity</span></div>
-                <div class="kpi-value-dense red-text" id="kpi-severity">0</div>
-            </div>
-            <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense green"><i class="fa-regular fa-clock"></i></div><span>Late (At Risk)</span></div>
-                <div class="kpi-value-dense" id="kpi-late">0</div>
-            </div>
+        <div class="control-box-dense">
+            <h3 class="panel-title">Analysis Settings</h3>
+            <select id="modelSelect" class="dense-select">
+                <option value="isolation_forest">Isolation Forest (Global)</option>
+                <option value="lof">Local Outlier Factor (Density)</option>
+            </select>
+            <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 10px; justify-content: center; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-microchip"></i> Run Analysis
+            </button>
         </div>
 
-        <div class="charts-grid-dense">
-            <div class="chart-box-dense col-span-2">
-                <h3 class="chart-title-dense">Anomalies Over Time</h3>
-                <div id="timeChart" style="height: 200px;"></div>
+        <div class="status-box-dense">
+            <h3 class="panel-title">System Status</h3>
+            <div id="loadingIndicator" style="display: none;">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span style="margin-left: 8px;">Processing rows...</span>
             </div>
-            <div class="chart-box-dense col-span-2">
-                <h3 class="chart-title-dense">Global Anomaly Heatmap</h3>
-                <div id="mapChart" style="height: 200px;"></div>
+            <div id="successIndicator" style="display: none;">
+                <p><i class="fa-solid fa-check-circle" style="color:var(--emerald); margin-right:6px;"></i>
+                   <span style="color:var(--emerald);">Analysis Complete</span></p>
+                <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
             </div>
-
-            <div class="chart-box-dense">
-                <h3 class="chart-title-dense">By Delivery Status</h3>
-                <div id="donutChart" style="height: 180px;"></div>
-            </div>
-            <div class="chart-box-dense">
-                <h3 class="chart-title-dense">Top Problematic Cities</h3>
-                <div id="barChart" style="height: 180px;"></div>
-            </div>
-            <div class="chart-box-dense">
-                <h3 class="chart-title-dense">Anomalies by Order Qty</h3>
-                <div id="quantityChart" style="height: 180px;"></div>
-            </div>
-            <div class="chart-box-dense">
-                <h3 class="chart-title-dense">Financial Impact</h3>
-                <div id="scatterChart" style="height: 180px;"></div>
-            </div>
-        </div>
-
-        <div class="table-box-dense">
-            <h3 class="chart-title-dense">Recent High-Severity Log</h3>
-            <table class="data-table-dense">
-                <thead>
-                    <tr><th>City</th><th>Country</th><th>Status</th><th>Discount</th><th>Profit</th><th>Severity</th></tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Upload data to view logs</td></tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="report-summary-box">
-            
-            <div class="report-col info-col">
-                <div class="report-header">
-                    <div class="report-icon"><i class="fa-solid fa-file-contract"></i></div>
-                    <h3>Analytical Report</h3>
-                </div>
-                <p>Our AI analysis has processed your data and identified key patterns and anomalies in your supply chain.</p>
-            </div>
-
-            <div class="report-col">
-                <h4>Key Insights</h4>
-                <ul class="report-list">
-                    <li><i class="fa-regular fa-circle-check text-blue"></i> Anomalous discount rates correlate with negative profits.</li>
-                    <li><i class="fa-regular fa-circle-check text-blue"></i> High concentration of late deliveries in specific cities.</li>
-                </ul>
-            </div>
-
-            <div class="report-col">
-                <h4>Recommendations</h4>
-                <ul class="report-list">
-                    <li><i class="fa-regular fa-circle-check text-blue"></i> Audit discount approval workflows for flagged orders.</li>
-                    <li><i class="fa-regular fa-circle-check text-blue"></i> Investigate carrier performance in top problematic regions.</li>
-                </ul>
-            </div>
-
-            <div class="report-col">
-                <h4>Impact</h4>
-                <ul class="report-list">
-                    <li><i class="fa-regular fa-circle-check text-blue"></i> Identify and recover hidden profit leakages.</li>
-                    <li><i class="fa-regular fa-circle-check text-blue"></i> Proactively improve overall on-time delivery metrics.</li>
-                </ul>
-            </div>
-
-            <div class="report-col decoration-col">
-                <i class="fa-solid fa-chart-line text-blue" style="font-size: 50px; opacity: 0.5;"></i>
-            </div>
-
+            <p style="font-size:12px; color:var(--text-muted); margin:0;" id="statusIdle">Upload a CSV and run analysis to begin.</p>
         </div>
 
     </div>
-    
-    <script src="script.js"></script>
+
+    <!-- KPI GRID -->
+    <div class="kpi-grid-dense">
+        <div class="kpi-card-dense">
+            <div class="kpi-header-dense">
+                <div class="kpi-icon-dense blue"><i class="fa-solid fa-database"></i></div>
+                <span>Rows Scanned</span>
+            </div>
+            <div class="kpi-value-dense" id="kpi-total">—</div>
+        </div>
+        <div class="kpi-card-dense">
+            <div class="kpi-header-dense">
+                <div class="kpi-icon-dense red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <span>Anomalies</span>
+            </div>
+            <div class="kpi-value-dense" id="kpi-anomalies">—</div>
+        </div>
+        <div class="kpi-card-dense">
+            <div class="kpi-header-dense">
+                <div class="kpi-icon-dense yellow"><i class="fa-solid fa-shield-virus"></i></div>
+                <span>High Severity</span>
+            </div>
+            <div class="kpi-value-dense red-text" id="kpi-severity">—</div>
+        </div>
+        <div class="kpi-card-dense">
+            <div class="kpi-header-dense">
+                <div class="kpi-icon-dense green"><i class="fa-regular fa-clock"></i></div>
+                <span>Late (At Risk)</span>
+            </div>
+            <div class="kpi-value-dense" id="kpi-late">—</div>
+        </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="charts-grid-dense">
+        <div class="chart-box-dense col-span-2">
+            <h3 class="chart-title-dense">Anomalies Over Time</h3>
+            <div id="timeChart" style="height: 200px;"></div>
+        </div>
+        <div class="chart-box-dense col-span-2">
+            <h3 class="chart-title-dense">Global Anomaly Heatmap</h3>
+            <div id="mapChart" style="height: 200px;"></div>
+        </div>
+        <div class="chart-box-dense">
+            <h3 class="chart-title-dense">By Delivery Status</h3>
+            <div id="donutChart" style="height: 180px;"></div>
+        </div>
+        <div class="chart-box-dense">
+            <h3 class="chart-title-dense">Top Problematic Cities</h3>
+            <div id="barChart" style="height: 180px;"></div>
+        </div>
+        <div class="chart-box-dense">
+            <h3 class="chart-title-dense">Anomalies by Order Qty</h3>
+            <div id="quantityChart" style="height: 180px;"></div>
+        </div>
+        <div class="chart-box-dense">
+            <h3 class="chart-title-dense">Financial Impact</h3>
+            <div id="scatterChart" style="height: 180px;"></div>
+        </div>
+    </div>
+
+    <!-- DATA TABLE -->
+    <div class="table-box-dense">
+        <h3 class="chart-title-dense" style="margin-bottom:10px;">Recent High-Severity Log</h3>
+        <table class="data-table-dense">
+            <thead>
+                <tr>
+                    <th>City</th>
+                    <th>Country</th>
+                    <th>Status</th>
+                    <th>Discount</th>
+                    <th>Profit</th>
+                    <th>Severity</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">Upload data to view logs</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ANALYTICAL REPORT -->
+    <div class="report-summary-box">
+        <div class="report-col info-col">
+            <div class="report-header">
+                <div class="report-icon"><i class="fa-solid fa-file-contract"></i></div>
+                <h3>Analytical Report</h3>
+            </div>
+            <p>Our AI analysis has processed your data and identified key patterns and anomalies in your supply chain.</p>
+        </div>
+        <div class="report-col">
+            <h4>Key Insights</h4>
+            <ul class="report-list">
+                <li><i class="fa-regular fa-circle-check text-blue"></i> Anomalous discount rates correlate with negative profits.</li>
+                <li><i class="fa-regular fa-circle-check text-blue"></i> High concentration of late deliveries in specific cities.</li>
+            </ul>
+        </div>
+        <div class="report-col">
+            <h4>Recommendations</h4>
+            <ul class="report-list">
+                <li><i class="fa-regular fa-circle-check text-blue"></i> Audit discount approval workflows for flagged orders.</li>
+                <li><i class="fa-regular fa-circle-check text-blue"></i> Investigate carrier performance in top problematic regions.</li>
+            </ul>
+        </div>
+        <div class="report-col">
+            <h4>Impact</h4>
+            <ul class="report-list">
+                <li><i class="fa-regular fa-circle-check text-blue"></i> Identify and recover hidden profit leakages.</li>
+                <li><i class="fa-regular fa-circle-check text-blue"></i> Proactively improve overall on-time delivery metrics.</li>
+            </ul>
+        </div>
+        <div class="report-col decoration-col">
+            <div class="deco-icon-wrap">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /main-container -->
+
+<!-- ============================================================
+     EMBEDDED SCRIPT.JS — Full analysis logic
+     ============================================================ -->
+<script>
+// ---- Plotly theme config shared by all charts ----
+const THEME = {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor:  'rgba(0,0,0,0)',
+    font: { family: 'DM Sans, sans-serif', color: '#8892A8', size: 11 },
+    margin: { t: 10, b: 30, l: 40, r: 10 },
+    colorway: ['#00D4FF','#7B61FF','#F43F5E','#00E5A0','#FFB547','#3B82F6'],
+    xaxis: { gridcolor: 'rgba(255,255,255,0.05)', zerolinecolor: 'rgba(255,255,255,0.05)' },
+    yaxis: { gridcolor: 'rgba(255,255,255,0.05)', zerolinecolor: 'rgba(255,255,255,0.05)' },
+};
+
+// ---- Empty placeholder charts on load ----
+function renderEmptyCharts() {
+    const empty = { data: [], layout: { ...THEME, margin: { t: 20, b: 20, l: 20, r: 20 } } };
+    const ids = ['timeChart','mapChart','donutChart','barChart','quantityChart','scatterChart'];
+    ids.forEach(id => {
+        Plotly.newPlot(id, [], {
+            ...THEME,
+            margin: { t: 10, b: 30, l: 40, r: 10 },
+            annotations: [{
+                text: 'No data yet',
+                showarrow: false,
+                x: 0.5, y: 0.5,
+                xref: 'paper', yref: 'paper',
+                font: { color: '#5A6380', size: 12 }
+            }]
+        }, { responsive: true, displayModeBar: false });
+    });
+}
+renderEmptyCharts();
+
+// ---- Drag-and-drop support ----
+const uploadBox = document.getElementById('uploadBox');
+uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.classList.add('drag-over'); });
+uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('drag-over'));
+uploadBox.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadBox.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) handleFile(file);
+});
+
+// ---- File input change ----
+document.getElementById('csvFileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
+});
+
+let parsedData = [];
+
+function handleFile(file) {
+    const display = document.getElementById('fileNameDisplay');
+    display.style.display = 'block';
+    display.textContent = '📄 ' + file.name;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        const text = e.target.result;
+        parsedData = parseCSV(text);
+    };
+    reader.readAsText(file);
+}
+
+// ---- Minimal CSV parser ----
+function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+    return lines.slice(1).map(line => {
+        const vals = smartSplit(line);
+        const row = {};
+        headers.forEach((h, i) => { row[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''); });
+        return row;
+    });
+}
+function smartSplit(line) {
+    const result = []; let cur = ''; let inQ = false;
+    for (let c of line) {
+        if (c === '"') { inQ = !inQ; }
+        else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+        else cur += c;
+    }
+    result.push(cur);
+    return result;
+}
+
+// ---- Analyze button ----
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+    if (!parsedData.length) {
+        alert('Please upload a CSV file first.');
+        return;
+    }
+    runAnalysis(parsedData);
+});
+
+function runAnalysis(data) {
+    // Show loading
+    document.getElementById('statusIdle').style.display = 'none';
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('successIndicator').style.display = 'none';
+
+    setTimeout(() => {
+        const results = detectAnomalies(data);
+        updateKPIs(results, data);
+        renderCharts(results, data);
+        renderTable(results);
+
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('successIndicator').style.display = 'block';
+    }, 800);
+}
+
+// ---- Anomaly detection (Isolation-Forest-style heuristic) ----
+function detectAnomalies(data) {
+    // Score each row by multiple heuristics
+    const discountKey  = findKey(data[0], ['discount rate','discount','disc rate']);
+    const profitKey    = findKey(data[0], ['order profit per order','profit per order','profit','profit ratio']);
+    const statusKey    = findKey(data[0], ['delivery status','delivery_status','status']);
+    const cityKey      = findKey(data[0], ['customer city','city','order city']);
+    const countryKey   = findKey(data[0], ['customer country','country','order country']);
+    const qtyKey       = findKey(data[0], ['order item quantity','quantity','qty','order quantity']);
+    const dateKey      = findKey(data[0], ['order date (dateorders)','order date','orderdate','date']);
+    const salesKey     = findKey(data[0], ['sales','order item total','sales per customer']);
+
+    const discounts = data.map(r => parseFloat(r[discountKey]) || 0);
+    const profits   = data.map(r => parseFloat(r[profitKey])   || 0);
+    const qtys      = data.map(r => parseFloat(r[qtyKey])      || 0);
+
+    const dMean = mean(discounts), dStd = std(discounts);
+    const pMean = mean(profits),   pStd = std(profits);
+    const qMean = mean(qtys),      qStd = std(qtys);
+
+    const model = document.getElementById('modelSelect').value;
+
+    return data.map((row, i) => {
+        let score = 0;
+        const d = discounts[i], p = profits[i], q = qtys[i];
+
+        if (dStd > 0) score += Math.abs((d - dMean) / dStd);
+        if (pStd > 0) score += Math.abs((p - pMean) / pStd);
+        if (qStd > 0) score += Math.abs((q - qMean) / qStd) * 0.5;
+        if (statusKey && (row[statusKey]||'').toLowerCase().includes('late')) score += 1.5;
+
+        // LOF boosts density-based: penalise extreme combos
+        if (model === 'lof' && d > 0.5 && p < 0) score += 2;
+
+        const isAnomaly = score > 2.8;
+        let severity = 'LOW';
+        if (score > 5) severity = 'HIGH';
+        else if (score > 3.6) severity = 'MED';
+
+        return {
+            row, score,
+            isAnomaly,
+            severity,
+            city:    cityKey    ? row[cityKey]    : '—',
+            country: countryKey ? row[countryKey] : '—',
+            status:  statusKey  ? row[statusKey]  : '—',
+            discount: d,
+            profit:   p,
+            qty:      q,
+            date:     dateKey   ? row[dateKey]    : '',
+            sales:    salesKey  ? parseFloat(row[salesKey]) || 0 : 0,
+        };
+    });
+}
+
+function findKey(sample, candidates) {
+    if (!sample) return null;
+    const keys = Object.keys(sample).map(k => k.toLowerCase());
+    for (const c of candidates) {
+        const match = keys.find(k => k.includes(c));
+        if (match) return Object.keys(sample).find(k => k.toLowerCase() === match);
+    }
+    return null;
+}
+function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function std(arr)  { const m=mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); }
+
+// ---- KPI update ----
+function updateKPIs(results, data) {
+    const anomalies = results.filter(r => r.isAnomaly);
+    const high      = anomalies.filter(r => r.severity === 'HIGH');
+    const late      = results.filter(r => r.status.toLowerCase().includes('late'));
+
+    animateCount('kpi-total',     data.length);
+    animateCount('kpi-anomalies', anomalies.length);
+    animateCount('kpi-severity',  high.length);
+    animateCount('kpi-late',      late.length);
+}
+
+function animateCount(id, target) {
+    const el = document.getElementById(id);
+    let start = 0; const duration = 800;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = Math.round(start).toLocaleString();
+        if (start >= target) clearInterval(timer);
+    }, 16);
+}
+
+// ---- Chart rendering ----
+function renderCharts(results, allData) {
+    const anomalies = results.filter(r => r.isAnomaly);
+    const cfg = { responsive: true, displayModeBar: false };
+
+    // 1. Time chart
+    const dateCounts = {};
+    anomalies.forEach(r => {
+        const d = r.date ? r.date.split(' ')[0] : 'Unknown';
+        dateCounts[d] = (dateCounts[d] || 0) + 1;
+    });
+    const dates = Object.keys(dateCounts).sort();
+    Plotly.react('timeChart', [{
+        x: dates, y: dates.map(d => dateCounts[d]),
+        type: 'scatter', mode: 'lines+markers',
+        line: { color: '#00D4FF', width: 2 },
+        marker: { color: '#7B61FF', size: 5 },
+        fill: 'tozeroy', fillcolor: 'rgba(0,212,255,0.08)',
+    }], { ...THEME }, cfg);
+
+    // 2. Map
+    const countryCounts = {};
+    anomalies.forEach(r => { const c = r.country || 'Unknown'; countryCounts[c] = (countryCounts[c]||0)+1; });
+    Plotly.react('mapChart', [{
+        type: 'choropleth', locationmode: 'country names',
+        locations: Object.keys(countryCounts),
+        z: Object.values(countryCounts),
+        colorscale: [[0,'#111520'],[0.5,'#7B61FF'],[1,'#00D4FF']],
+        showscale: false,
+    }], {
+        ...THEME,
+        geo: { bgcolor: 'rgba(0,0,0,0)', showframe: false, showcoastlines: true, coastlinecolor: 'rgba(255,255,255,0.08)', landcolor: '#111520', showland: true }
+    }, cfg);
+
+    // 3. Donut
+    const statusCounts = {};
+    anomalies.forEach(r => { const s = r.status||'Unknown'; statusCounts[s] = (statusCounts[s]||0)+1; });
+    Plotly.react('donutChart', [{
+        type: 'pie', hole: 0.55,
+        labels: Object.keys(statusCounts),
+        values: Object.values(statusCounts),
+        marker: { colors: ['#F43F5E','#FFB547','#00D4FF','#7B61FF','#00E5A0'] },
+        textinfo: 'none',
+    }], { ...THEME, showlegend: true, legend: { font: { size: 10, color: '#8892A8' }, bgcolor: 'rgba(0,0,0,0)' }, margin: { t:5, b:5, l:5, r:5 } }, cfg);
+
+    // 4. Bar — top cities
+    const cityCounts = {};
+    anomalies.forEach(r => { const c = r.city||'Unknown'; cityCounts[c]=(cityCounts[c]||0)+1; });
+    const topCities = Object.entries(cityCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    Plotly.react('barChart', [{
+        type: 'bar', orientation: 'h',
+        y: topCities.map(c=>c[0]), x: topCities.map(c=>c[1]),
+        marker: { color: '#7B61FF', opacity: 0.85 },
+    }], { ...THEME, margin: { t:5, b:30, l:80, r:10 } }, cfg);
+
+    // 5. Quantity histogram
+    const qtys = anomalies.map(r => r.qty).filter(q => q > 0);
+    Plotly.react('quantityChart', [{
+        type: 'histogram', x: qtys, nbinsx: 15,
+        marker: { color: '#00E5A0', opacity: 0.8 },
+    }], { ...THEME }, cfg);
+
+    // 6. Scatter — financial
+    Plotly.react('scatterChart', [{
+        type: 'scatter', mode: 'markers',
+        x: anomalies.map(r => r.discount),
+        y: anomalies.map(r => r.profit),
+        text: anomalies.map(r => r.city),
+        marker: {
+            size: 6, opacity: 0.75,
+            color: anomalies.map(r => r.severity === 'HIGH' ? '#F43F5E' : r.severity === 'MED' ? '#FFB547' : '#00D4FF'),
+        },
+    }], { ...THEME, xaxis: { ...THEME.xaxis, title: { text: 'Discount', font: { size: 10 } } }, yaxis: { ...THEME.yaxis, title: { text: 'Profit', font: { size: 10 } } } }, cfg);
+}
+
+// ---- Table ----
+function renderTable(results) {
+    const highSev = results.filter(r => r.isAnomaly && r.severity === 'HIGH').slice(0, 50);
+    const tbody = document.getElementById('tableBody');
+    if (!highSev.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:16px;">No high-severity anomalies detected.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = highSev.map(r => `
+        <tr>
+            <td>${r.city}</td>
+            <td>${r.country}</td>
+            <td>${r.status}</td>
+            <td>${(r.discount*100).toFixed(1)}%</td>
+            <td style="color:${r.profit < 0 ? 'var(--crimson)' : 'var(--emerald)'}">$${r.profit.toFixed(2)}</td>
+            <td><span class="badge-severity-high">HIGH</span></td>
+        </tr>
+    `).join('');
+}
+</script>
+
 </body>
 </html>
