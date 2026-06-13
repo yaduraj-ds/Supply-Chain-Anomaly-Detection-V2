@@ -35,7 +35,6 @@ async def root():
 
 @app.post("/analyze")
 async def analyze_data(file: UploadFile = File(...)): 
-    # Notice we removed model_type from the parameters here!
     
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files allowed.")
@@ -64,7 +63,6 @@ async def analyze_data(file: UploadFile = File(...)):
     missing_cols = [col for col in all_required if col not in df.columns]
     
     if missing_cols:
-        # If missing, it's likely a naming mismatch. We show exactly what's missing.
         raise HTTPException(status_code=400, detail=f"Dataset error. Missing: {missing_cols}")
 
     df_clean = df.dropna(subset=features).copy()
@@ -72,7 +70,6 @@ async def analyze_data(file: UploadFile = File(...)):
     X_scaled = scaler.transform(X_new)
 
     # --- MODEL INFERENCE ---
-    # We now exclusively load and use Isolation Forest for maximum stability
     iso_forest = joblib.load(os.path.join(MODEL_DIR, "isolation_forest.pkl"))
     df_clean['Anomaly'] = iso_forest.predict(X_scaled)
 
@@ -89,7 +86,29 @@ async def analyze_data(file: UploadFile = File(...)):
     total_anomalies_count = len(anomalies)
     total_rows = len(df_clean)
 
-    # Hardcoded "isolation_forest" since it's our sole model now
+    # --- NEW KPI CALCULATIONS ---
+    
+    # 1. Avg Delay Days (Check if 'scheduled' column exists to find true delay, else fallback to 'real' days for late orders)
+    if 'Days for shipping (scheduled)' in df.columns:
+        late_orders = anomalies[anomalies['Delivery Status'] == 'Late delivery']
+        delays = late_orders['Days for shipping (real)'] - late_orders['Days for shipping (scheduled)']
+        raw_avg_delay = delays[delays > 0].mean()
+    else:
+        late_orders = anomalies[anomalies['Delivery Status'] == 'Late delivery']
+        raw_avg_delay = late_orders['Days for shipping (real)'].mean()
+        
+    avg_delay_days = 0.0 if pd.isna(raw_avg_delay) else round(float(raw_avg_delay), 1)
+
+    # 2. Revenue Loss (Calculate absolute lost money: Total Sales * Negative Profit Ratio)
+    loss_df = anomalies[anomalies['Order Item Profit Ratio'] < 0]
+    raw_revenue_loss = (loss_df['Order Item Total'] * loss_df['Order Item Profit Ratio']).sum()
+    revenue_loss = round(float(abs(raw_revenue_loss)), 2)
+
+    # 3. On-Time Delivery Rate (Across the entire scanned dataset)
+    on_time_orders = df_clean[df_clean['Delivery Status'].isin(['Shipping on time', 'Advance shipping'])]
+    on_time_delivery_rate = round(float((len(on_time_orders) / total_rows) * 100), 1) if total_rows > 0 else 0.0
+
+    # Hardcoded "isolation_forest" since it's our sole model
     log_analysis("isolation_forest", total_rows, total_anomalies_count, high_sev_count)
 
     results = anomalies.fillna("").head(150).to_dict(orient="records")
@@ -100,5 +119,11 @@ async def analyze_data(file: UploadFile = File(...)):
         "total_anomalies_found": total_anomalies_count,
         "high_severity_count": high_sev_count,
         "at_risk_count": int((anomalies['Delivery Status'] == 'Late delivery').sum()),
+        
+        # --- NEW JSON OUTPUTS ---
+        "avg_delay_days": avg_delay_days,
+        "revenue_loss": revenue_loss,
+        "on_time_delivery_rate": on_time_delivery_rate,
+        
         "anomalies": results
     }

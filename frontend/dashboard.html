@@ -3,72 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Supply Chain Intelligence</title>
+    <title>Dashboard — Supply Chain Intelligence</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body class="dashboard-body">
 
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
     <nav class="navbar dashboard-nav">
         <div class="logo">
-            <div class="logo-icon"><i class="fa-solid fa-cube" style="color: #3B82F6;"></i></div>
+            <div class="logo-icon">
+                <svg class="logo-hex" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="14,2 25,8 25,20 14,26 3,20 3,8" stroke="url(#hexGradD)" stroke-width="1.5" fill="none"/>
+                    <defs>
+                        <linearGradient id="hexGradD" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00D4FF"/>
+                            <stop offset="100%" stop-color="#7B61FF"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <i class="fa-solid fa-cube logo-cube"></i>
+            </div>
             Supply Chain Intelligence
         </div>
-        <a href="index.html" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Logout</a>
+        <a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
     </nav>
 
     <div class="main-container">
-        
+
         <div class="upload-section-dense">
+
             <div class="upload-box-dense" id="uploadBox">
-                <i class="fa-solid fa-cloud-arrow-up text-blue" style="font-size: 24px; margin-bottom: 8px;"></i>
-                <p style="margin: 0; font-size: 12px; color: var(--text-muted);">Drag & drop CSV or click to browse</p>
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p>Drag & drop a CSV file or click to browse</p>
                 <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
-                <button class="btn-primary btn-sm" onclick="document.getElementById('csvFileInput').click()">Choose File</button>
-                <p id="fileNameDisplay" style="color: #10B981; margin-top: 5px; font-size: 11px; display: none;"></p>
+                <button class="btn-primary btn-sm" onclick="document.getElementById('csvFileInput').click()">
+                    <i class="fa-solid fa-folder-open" style="margin-right:6px;"></i>Choose File
+                </button>
+                <p id="fileNameDisplay"></p>
             </div>
 
             <div class="control-box-dense">
-                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Analysis Engine</h3>
-                
-                <input type="hidden" id="modelSelect" value="isolation_forest">
-                
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-                    <i class="fa-solid fa-check-circle" style="color: #10B981;"></i> Isolation Forest Active
+                <h3 class="panel-title">Analysis Engine</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; font-family: 'DM Sans', sans-serif;">
+                    <i class="fa-solid fa-shield-check" style="color: var(--cyan);"></i> Powered by Isolation Forest
                 </p>
-                
-                <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 2px;"><i class="fa-solid fa-microchip"></i> Run Analysis</button>
+                <button class="btn-primary btn-sm" id="analyzeBtn" style="width: 100%; margin-top: 10px; justify-content: center; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-microchip"></i> Run Analysis
+                </button>
             </div>
 
             <div class="status-box-dense">
-                <h3 style="margin: 0 0 10px 0; font-size: 14px;">System Status</h3>
-                <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 10px;">
-                    <i class="fa-solid fa-circle-notch fa-spin text-blue"></i> <span style="font-size: 12px; color: var(--text-muted);">Processing 100,000+ rows...</span>
+                <h3 class="panel-title">System Status</h3>
+                <div id="loadingIndicator" style="display: none;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                    <span style="margin-left: 8px;">Processing rows...</span>
                 </div>
                 <div id="successIndicator" style="display: none;">
-                    <p style="margin:0; font-size: 12px; color: #34D399;"><i class="fa-solid fa-check-circle"></i> Analysis Complete</p>
+                    <p><i class="fa-solid fa-check-circle" style="color:var(--emerald); margin-right:6px;"></i>
+                       <span style="color:var(--emerald);">Analysis Complete</span></p>
                     <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
                 </div>
+                <p style="font-size:12px; color:var(--text-muted); margin:0;" id="statusIdle">Upload a CSV and run analysis to begin.</p>
             </div>
+
         </div>
 
         <div class="kpi-grid-dense">
             <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense blue"><i class="fa-solid fa-database"></i></div><span>Rows Scanned</span></div>
-                <div class="kpi-value-dense" id="kpi-total">0</div>
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense blue"><i class="fa-solid fa-database"></i></div>
+                    <span>Rows Scanned</span>
+                </div>
+                <div class="kpi-value-dense" id="kpi-total">—</div>
             </div>
             <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense red"><i class="fa-solid fa-triangle-exclamation"></i></div><span>Anomalies</span></div>
-                <div class="kpi-value-dense" id="kpi-anomalies">0</div>
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <span>Anomalies</span>
+                </div>
+                <div class="kpi-value-dense" id="kpi-anomalies">—</div>
             </div>
             <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense yellow"><i class="fa-solid fa-shield-virus"></i></div><span>High Severity</span></div>
-                <div class="kpi-value-dense red-text" id="kpi-severity">0</div>
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense yellow"><i class="fa-solid fa-shield-virus"></i></div>
+                    <span>High Severity</span>
+                </div>
+                <div class="kpi-value-dense red-text" id="kpi-severity">—</div>
             </div>
             <div class="kpi-card-dense">
-                <div class="kpi-header-dense"><div class="kpi-icon-dense green"><i class="fa-regular fa-clock"></i></div><span>Late (At Risk)</span></div>
-                <div class="kpi-value-dense" id="kpi-late">0</div>
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense green"><i class="fa-regular fa-clock"></i></div>
+                    <span>Late (At Risk)</span>
+                </div>
+                <div class="kpi-value-dense" id="kpi-late">—</div>
+            </div>
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense" style="background:var(--violet); box-shadow: 0 0 12px rgba(123,97,255,0.45);"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <span>Avg Delay Days</span>
+                </div>
+                <div class="kpi-value-dense" id="kpi-delay">—</div>
+            </div>
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense" style="background:var(--crimson); box-shadow: 0 0 12px rgba(244,63,94,0.45);"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                    <span>Revenue Loss</span>
+                </div>
+                <div class="kpi-value-dense red-text" id="kpi-revenue">—</div>
+            </div>
+            <div class="kpi-card-dense">
+                <div class="kpi-header-dense">
+                    <div class="kpi-icon-dense" style="background:var(--cyan); box-shadow: 0 0 12px rgba(0,212,255,0.45);"><i class="fa-solid fa-truck-fast"></i></div>
+                    <span>On-Time Rate</span>
+                </div>
+                <div class="kpi-value-dense" id="kpi-ontime">—</div>
             </div>
         </div>
 
@@ -81,7 +135,6 @@
                 <h3 class="chart-title-dense">Global Anomaly Heatmap</h3>
                 <div id="mapChart" style="height: 200px;"></div>
             </div>
-
             <div class="chart-box-dense">
                 <h3 class="chart-title-dense">By Delivery Status</h3>
                 <div id="donutChart" style="height: 180px;"></div>
@@ -90,30 +143,28 @@
                 <h3 class="chart-title-dense">Top Problematic Cities</h3>
                 <div id="barChart" style="height: 180px;"></div>
             </div>
-            <div class="chart-box-dense">
-                <h3 class="chart-title-dense">Anomalies by Order Qty</h3>
-                <div id="quantityChart" style="height: 180px;"></div>
-            </div>
-            <div class="chart-box-dense">
-                <h3 class="chart-title-dense">Financial Impact</h3>
-                <div id="scatterChart" style="height: 180px;"></div>
-            </div>
         </div>
 
         <div class="table-box-dense">
-            <h3 class="chart-title-dense">Recent High-Severity Log</h3>
+            <h3 class="chart-title-dense" style="margin-bottom:10px;">Recent High-Severity Log</h3>
             <table class="data-table-dense">
                 <thead>
-                    <tr><th>City</th><th>Country</th><th>Status</th><th>Discount</th><th>Profit</th><th>Severity</th></tr>
+                    <tr>
+                        <th>City</th>
+                        <th>Country</th>
+                        <th>Status</th>
+                        <th>Discount</th>
+                        <th>Profit</th>
+                        <th>Severity</th>
+                    </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Upload data to view logs</td></tr>
+                    <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">Upload data to view logs</td></tr>
                 </tbody>
             </table>
         </div>
-        
+
         <div class="report-summary-box">
-            
             <div class="report-col info-col">
                 <div class="report-header">
                     <div class="report-icon"><i class="fa-solid fa-file-contract"></i></div>
@@ -121,7 +172,6 @@
                 </div>
                 <p>Our AI analysis has processed your data and identified key patterns and anomalies in your supply chain.</p>
             </div>
-
             <div class="report-col">
                 <h4>Key Insights</h4>
                 <ul class="report-list">
@@ -129,7 +179,6 @@
                     <li><i class="fa-regular fa-circle-check text-blue"></i> High concentration of late deliveries in specific cities.</li>
                 </ul>
             </div>
-
             <div class="report-col">
                 <h4>Recommendations</h4>
                 <ul class="report-list">
@@ -137,7 +186,6 @@
                     <li><i class="fa-regular fa-circle-check text-blue"></i> Investigate carrier performance in top problematic regions.</li>
                 </ul>
             </div>
-
             <div class="report-col">
                 <h4>Impact</h4>
                 <ul class="report-list">
@@ -145,15 +193,13 @@
                     <li><i class="fa-regular fa-circle-check text-blue"></i> Proactively improve overall on-time delivery metrics.</li>
                 </ul>
             </div>
-
             <div class="report-col decoration-col">
-                <i class="fa-solid fa-chart-line text-blue" style="font-size: 50px; opacity: 0.5;"></i>
+                <div class="deco-icon-wrap">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
             </div>
-
         </div>
 
-    </div>
-    
-    <script src="script.js"></script>
+    </div><script src="script.js"></script>
 </body>
 </html>
