@@ -181,14 +181,29 @@ function renderCharts(anomalies) {
     const cityCounts = {};
     anomalies.forEach(r => { 
         const c = r['Order City'] || 'Unknown'; 
-        cityCounts[c]=(cityCounts[c]||0) + 1; 
+        cityCounts[c] = (cityCounts[c] || 0) + 1; 
     });
-    const topCities = Object.entries(cityCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    // Grab the top 5 cities
+    const topCities = Object.entries(cityCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    
     Plotly.react('barChart', [{
-        type: 'bar', orientation: 'h',
-        y: topCities.map(c=>c[0]), x: topCities.map(c=>c[1]),
-        marker: { color: '#7B61FF', opacity: 0.85 },
-    }], { ...THEME, margin: { t:5, b:30, l:80, r:10 }, yaxis: { ...THEME.yaxis, autorange: 'reversed' } }, cfg);
+        type: 'bar',
+        x: topCities.map(c => c[0]),
+        y: topCities.map(c => c[1]),
+        marker: { 
+            // Obsidian Ops neon palette for the bars
+            color: ['#F43F5E', '#FFB547', '#00D4FF', '#7B61FF', '#00E5A0'],
+            opacity: 0.9
+        },
+    }], { 
+        ...THEME, 
+        margin: { t: 15, b: 40, l: 30, r: 10 }, 
+        xaxis: { 
+            ...THEME.xaxis, 
+            type: 'category', // Forces Plotly to read the city strings
+            tickangle: -25    // Tilts long city names so they don't get cut off
+        } 
+    }, cfg);
 }
 
 // ---- Backend Rendered Table ----
