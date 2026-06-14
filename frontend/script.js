@@ -11,7 +11,8 @@ const THEME = {
 
 // ---- Empty placeholder charts on load ----
 function renderEmptyCharts() {
-    const ids = ['timeChart','mapChart','donutChart','barChart'];
+    // I added 'severityChart' and 'matrixChart' to this array (This was Step 2!)
+    const ids = ['timeChart','mapChart','donutChart','barChart', 'severityChart', 'matrixChart'];
     ids.forEach(id => {
         Plotly.newPlot(id, [], {
             ...THEME,
@@ -203,6 +204,49 @@ function renderCharts(anomalies) {
             type: 'category', // Forces Plotly to read the city strings
             tickangle: -25    // Tilts long city names so they don't get cut off
         } 
+    }, cfg);
+
+    // 5. Severity Breakdown (Donut)
+    const severityCounts = { 'High': 0, 'Medium': 0, 'Low': 0 };
+    anomalies.forEach(r => {
+        const s = r['Severity'] || 'Low';
+        severityCounts[s] = (severityCounts[s] || 0) + 1;
+    });
+    Plotly.react('severityChart', [{
+        type: 'pie', hole: 0.55,
+        labels: Object.keys(severityCounts),
+        values: Object.values(severityCounts),
+        marker: { colors: ['#F43F5E', '#FFB547', '#00E5A0'] }, // Red, Yellow, Green
+        textinfo: 'none'
+    }], { ...THEME, showlegend: true, legend: { font: { size: 10, color: '#8892A8' }, bgcolor: 'rgba(0,0,0,0)' }, margin: { t:5, b:5, l:5, r:5 } }, cfg);
+
+    // 6. Profit-Killer Matrix (2D Heatmap)
+    const statuses = [...new Set(anomalies.map(r => r['Delivery Status'] || 'Unknown'))];
+    const severities = ['Low', 'Medium', 'High'];
+    
+    // Build the 2D array [Y][X] for the heatmap
+    const zData = severities.map(sev => 
+        statuses.map(stat => 
+            anomalies.filter(r => r['Severity'] === sev && r['Delivery Status'] === stat).length
+        )
+    );
+
+    Plotly.react('matrixChart', [{
+        type: 'heatmap',
+        x: statuses,
+        y: severities,
+        z: zData,
+        colorscale: [
+            [0, '#111520'],      // Background dark
+            [0.5, '#7B61FF'],    // Violet for medium risk clusters
+            [1, '#00D4FF']       // Cyan for high risk clusters
+        ],
+        showscale: false
+    }], { 
+        ...THEME, 
+        margin: { t: 15, b: 40, l: 50, r: 10 },
+        xaxis: { ...THEME.xaxis, tickangle: -25 },
+        yaxis: { ...THEME.yaxis }
     }, cfg);
 }
 
