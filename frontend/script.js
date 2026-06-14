@@ -231,6 +231,23 @@ function renderCharts(anomalies) {
         )
     );
 
+    // Create text labels to overlay the exact numbers inside the heatmap blocks
+    const annotations = [];
+    for (let i = 0; i < severities.length; i++) {
+        for (let j = 0; j < statuses.length; j++) {
+            const val = zData[i][j];
+            if (val > 0) { // Only draw the text if the value is greater than 0
+                annotations.push({
+                    x: statuses[j],
+                    y: severities[i],
+                    text: val,
+                    font: { color: '#FFFFFF', size: 12, family: 'DM Sans, sans-serif' },
+                    showarrow: false
+                });
+            }
+        }
+    }
+
     Plotly.react('matrixChart', [{
         type: 'heatmap',
         x: statuses,
@@ -241,12 +258,22 @@ function renderCharts(anomalies) {
             [0.5, '#7B61FF'],    // Violet for medium risk clusters
             [1, '#00D4FF']       // Cyan for high risk clusters
         ],
-        showscale: false
+        showscale: false,
+        xgap: 2, // Adds a sleek black border between the glowing squares
+        ygap: 2
     }], { 
         ...THEME, 
-        margin: { t: 15, b: 40, l: 50, r: 10 },
-        xaxis: { ...THEME.xaxis, tickangle: -25 },
-        yaxis: { ...THEME.yaxis }
+        margin: { t: 15, b: 40, l: 60, r: 10 },
+        xaxis: { 
+            ...THEME.xaxis, 
+            type: 'category', // Forces Plotly to read the string status names
+            tickangle: -25 
+        },
+        yaxis: { 
+            ...THEME.yaxis, 
+            type: 'category'  // Forces Plotly to read the severity strings
+        },
+        annotations: annotations
     }, cfg);
 }
 
